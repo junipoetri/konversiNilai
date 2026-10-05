@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Konversi Nilai Siswa — Proporsional & Profesional</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(180deg,#eef2ff 0%,#f1f5f9 320px,#f1f5f9 100%);
+    color:#1e293b;padding:24px 16px;line-height:1.5;min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{text-align:center;margin-bottom:26px}
+  header h1{font-size:26px;font-weight:800;color:#1e1b4b;letter-spacing:-.4px}
+  header p{color:#64748b;font-size:14px;margin-top:6px}
+
+  .card{
+    background:#fff;border-radius:16px;padding:22px;margin-bottom:20px;
+    box-shadow:0 1px 3px rgba(15,23,42,.06),0 8px 24px -12px rgba(15,23,42,.15);
+    border:1px solid #e2e8f0;
+  }
+  .card h2{font-size:16px;font-weight:700;color:#1e1b4b;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+  .tabs{display:flex;gap:6px;background:#f1f5f9;padding:5px;border-radius:12px;margin-bottom:18px;width:fit-content}
+  .tab{
+    border:0;background:transparent;padding:9px 18px;border-radius:9px;cursor:pointer;
+    font-size:13.5px;font-weight:600;color:#64748b;transition:.18s;font-family:inherit;
+  }
+  .tab.active{background:#fff;color:#4338ca;box-shadow:0 1px 4px rgba(15,23,42,.1)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  .dropzone{
+    border:2px dashed #c7d2fe;border-radius:14px;padding:38px 20px;text-align:center;
+    cursor:pointer;transition:.2s;background:#f8faff;
+  }
+  .dropzone:hover,.dropzone.drag{background:#eef2ff;border-color:#818cf8}
+  .dz-icon{font-size:34px;margin-bottom:8px}
+  .dropzone p{font-size:14px;color:#475569}
+  .dropzone small{display:block;margin-top:8px;color:#94a3b8;font-size:12px}
+  .hint{font-size:12px;color:#94a3b8;margin-top:10px}
+
+  .table-scroll{max-height:420px;overflow:auto;border:1px solid #e2e8f0;border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{
+    position:sticky;top:0;background:#f8fafc;text-align:left;padding:9px 12px;
+    font-weight:700;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.4px;
+    border-bottom:1px solid #e2e8f0;z-index:2;white-space:nowrap;
+  }
+  tbody td{padding:6px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#fafbff}
+
+  .input-table input{
+    width:100%;border:1px solid transparent;background:transparent;padding:8px 10px;
+    border-radius:8px;font-size:13.5px;font-family:inherit;color:#1e293b;outline:none;transition:.15s;
+  }
+  .input-table input:focus{border-color:#a5b4fc;background:#fff;box-shadow:0 0 0 3px rgba(165,180,252,.25)}
+  .input-table input:hover{background:#f8fafc}
+
+  .row-btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .btn-ghost{
+    border:1px solid #e2e8f0;background:#fff;padding:9px 15px;border-radius:9px;cursor:pointer;
+    font-size:13px;font-weight:600;color:#475569;font-family:inherit;transition:.15s;
+  }
+  .btn-ghost:hover{background:#f8fafc;border-color:#cbd5e1}
+  .btn-ghost.danger{color:#dc2626;border-color:#fecaca}
+  .btn-ghost.danger:hover{background:#fef2f2}
+  .btn-ghost.primary{background:#4338ca;color:#fff;border-color:#4338ca}
+  .btn-ghost.primary:hover{background:#3730a3}
+
+  .del-btn{
+    border:0;background:transparent;color:#cbd5e1;cursor:pointer;font-size:16px;
+    border-radius:6px;width:28px;height:28px;transition:.15s;
+  }
+  .del-btn:hover{background:#fee2e2;color:#dc2626}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:#475569;margin-bottom:7px}
+  .field input,.field select,.field textarea{
+    width:100%;padding:11px 13px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;
+    font-family:inherit;color:#1e293b;outline:none;transition:.15s;background:#fff;
+  }
+  .field textarea{resize:vertical;min-height:130px;font-family:'Consolas','Monaco',monospace;font-size:13px;line-height:1.55}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.18)}
+
+  .btn-primary{
+    width:100%;padding:15px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);font-family:inherit;
+    box-shadow:0 6px 18px -6px rgba(79,70,229,.6);transition:.18s;letter-spacing:.2px;
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px -6px rgba(79,70,229,.7)}
+  .btn-primary:active{transform:translateY(0)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:13px 15px}
+  .stat .lbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+  .stat .val{font-size:19px;font-weight:800;color:#1e1b4b;margin-top:3px}
+  .stat .val small{font-size:12px;font-weight:600;color:#94a3b8}
+
+  /* Tabel hasil — bisa diseleksi seperti Excel */
+  .result-table{user-select:text;-webkit-user-select:text}
+  .result-table td{
+    padding:10px 12px;cursor:cell;
+    user-select:text;-webkit-user-select:text;
+  }
+  .result-table tbody tr:nth-child(even){background:#fcfdff}
+  .result-table tbody tr:hover{background:#f0f4ff}
+  .result-table th{position:relative;padding-right:32px}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .badge.up{background:#dcfce7;color:#15803d}
+  .badge.down{background:#fee2e2;color:#b91c1c}
+  .badge.same{background:#f1f5f9;color:#64748b}
+  .num-conv{font-weight:800;color:#4338ca}
+  .num-orig{font-weight:600;color:#475569}
+
+  /* Tombol copy kolom di header */
+  .copy-col-btn{
+    position:absolute;right:5px;top:50%;transform:translateY(-50%);
+    border:0;background:#eef2ff;color:#4338ca;cursor:pointer;
+    width:22px;height:22px;border-radius:5px;font-size:11px;
+    display:flex;align-items:center;justify-content:center;
+    opacity:.55;transition:.15s;
+  }
+  .copy-col-btn:hover{opacity:1;background:#c7d2fe}
+
+  .export-bar{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .btn-export{
+    border:0;padding:11px 18px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;
+    font-family:inherit;transition:.15s;display:flex;align-items:center;gap:7px;
+  }
+  .btn-xlsx{background:#047857;color:#fff}
+  .btn-xlsx:hover{background:#065f46}
+  .btn-csv{background:#0369a1;color:#fff}
+  .btn-csv:hover{background:#075985}
+  .btn-copy-all{background:#7c3aed;color:#fff}
+  .btn-copy-all:hover{background:#6d28d9}
+
+  .alert{
+    padding:12px 16px;border-radius:10px;font-size:13.5px;margin-bottom:16px;
+    background:#fef3c7;border:1px solid #fde68a;color:#92400e;font-weight:600;
+  }
+  .alert.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+  .alert.info{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}
+
+  .mapping-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;padding:16px;
+    background:#f8faff;border:1px solid #e0e7ff;border-radius:12px;
+  }
+  .mapping-grid .field label{color:#3730a3}
+  .mapping-grid select{border-color:#c7d2fe}
+
+  .preview-note{font-size:12.5px;color:#64748b;margin-bottom:8px;font-weight:600}
+
+  /* Toast */
+  #toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:#1e293b;color:#fff;padding:12px 22px;border-radius:12px;
+    font-size:13.5px;font-weight:600;box-shadow:0 12px 30px -8px rgba(0,0,0,.4);
+    opacity:0;transition:.28s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;
+    display:flex;align-items:center;gap:8px;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:640px){
+    body{padding:14px 10px}
+    .card{padding:16px}
+    header h1{font-size:20px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .mapping-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>🎯 Konversi Nilai Siswa</h1>
+    <p>Transformasi nilai asli ke rentang yang diinginkan secara proporsional, adil &amp; terukur</p>
+  </header>
+
+  <section class="card">
+    <div class="tabs">
+      <button class="tab active" data-tab="file">📁 Upload File XLS/CSV</button>
+      <button class="tab" data-tab="manual">✍️ Input Manual / Bulk Paste</button>
+    </div>
+
+    <!-- Panel FILE -->
+    <div class="tab-panel active" id="panel-file">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".xls,.xlsx,.csv" hidden>
+        <div class="dz-icon">📤</div>
+        <p><strong>Klik</strong> atau <strong>tarik file</strong> ke sini</p>
+        <small>Format: .xlsx · .xls · .csv — semua kolom dibaca, termasuk yang tanpa judul</small>
+      </div>
+      <p class="hint">💡 Setelah file terbaca, pilih kolom mana yang menjadi <b>Nama</b> dan <b>Nilai</b>. Kolom lain tetap dipertahankan di output.</p>
+      <div id="fileInfo"></div>
+
+      <div id="mappingPanel" style="display:none">
+        <div class="mapping-grid">
+          <div class="field">
+            <label>🎯 Pilih Kolom Nama Siswa</label>
+            <select id="nameColSel"></select>
+          </div>
+          <div class="field">
+            <label>🔢 Pilih Kolom Nilai Asli</label>
+            <select id="valueColSel"></select>
+          </div>
+        </div>
+        <p class="preview-note">👁️ Preview 5 baris pertama data:</p>
+        <div class="table-scroll" style="max-height:220px">
+          <table id="previewTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel MANUAL -->
+    <div class="tab-panel" id="panel-manual">
+      <div class="field">
+        <label>📋 Tempel / Paste data dari Excel · Word · Google Sheets (bisa banyak baris sekaligus)</label>
+        <textarea id="bulkPaste" placeholder="Contoh format (Tab, koma, semicolon, pipe, atau spasi ganda sebagai pemisah):
+
+Ahmad Fauzi	45
+Bella Safira	58
+Citra Dewi	62
+...
+atau
+Ahmad Fauzi,45
+Bella Safira,58
+..."></textarea>
+      </div>
+      <div class="row-btns">
+        <button class="btn-ghost primary" id="parseBulk">📥 Proses Tempelan → Tabel</button>
+        <button class="btn-ghost" id="loadSample">📋 Contoh Data</button>
+        <button class="btn-ghost" id="addRow">➕ Tambah Baris Kosong</button>
+        <button class="btn-ghost danger" id="clearManual">🗑️ Bersihkan Semua</button>
+      </div>
+
+      <div style="margin-top:18px">
+        <p class="preview-note">✏️ Hasil parsing (bisa diedit langsung):</p>
+        <div class="table-scroll">
+          <table class="input-table">
+            <thead>
+              <tr>
+                <th style="width:60px">No</th>
+                <th>Nama Siswa</th>
+                <th style="width:150px">Nilai Asli</th>
+                <th style="width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="manualBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⚙️ Pengaturan Konversi</h2>
+    <div class="grid">
+      <div class="field">
+        <label>Nilai Minimal Diinginkan</label>
+        <input type="number" id="targetMin" value="60" step="0.01">
+      </div>
+      <div class="field">
+        <label>Nilai Maksimal Diinginkan</label>
+        <input type="number" id="targetMax" value="100" step="0.01">
+      </div>
+      <div class="field">
+        <label>Metode Konversi</label>
+        <select id="method">
+          <option value="linear">Linear Proporsional (Min–Max)</option>
+          <option value="zscore">Z-Score → T-Score</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Pembulatan</label>
+        <select id="roundMode">
+          <option value="0">Bilangan Bulat</option>
+          <option value="1">1 Desimal</option>
+          <option value="2" selected>2 Desimal</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" id="convertBtn">🚀 Konversi Nilai Sekarang</button>
+  </section>
+
+  <section class="card" id="resultCard" style="display:none">
+    <h2>📊 Hasil Konversi</h2>
+    <div id="resultAlert"></div>
+    <div class="stats" id="statsBox"></div>
+    <p class="preview-note">💡 Klik ikon 📋 di header kolom untuk copy kolom itu saja. Atau drag-select sel seperti di Excel.</p>
+    <div class="table-scroll" style="max-height:520px">
+      <table class="result-table" id="resultTable">
+        <thead id="resultHead"></thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
+    <div class="export-bar">
+      <button class="btn-export btn-copy-all" id="copyAllBtn">📋 Copy Semua (paste ke Excel)</button>
+      <button class="btn-export btn-xlsx" id="exportXlsx">📥 Unduh Excel (.xlsx)</button>
+      <button class="btn-export btn-csv" id="exportCsv">📄 Unduh CSV</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   STATE
+   ========================================================= */
+const $ = id => document.getElementById(id);
+let activeTab = 'file';
+let fileData = { headers: [], rows: [], nameIdx: -1, valueIdx: -1, fileName: '' };
+let manualData = [];
+let results = [];
+let displayCols = [];
+let lastMeta = {};
+
+/* =========================================================
+   UTIL
+   ========================================================= */
+function isNumeric(v) {
+  if (v === null || v === undefined || v === '') return false;
+  const s = String(v).trim().replace(',', '.');
+  if (s === '') return false;
+  return !isNaN(parseFloat(s)) && isFinite(s);
+}
+function toNum(v) {
+  if (v === null || v === undefined || v === '') return NaN;
+  return parseFloat(String(v).replace(',', '.'));
+}
+function escAttr(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+function escapeHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtNum(v, dec) { return Number(v).toFixed(dec); }
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* =========================================================
+   TAB SWITCHING
+   ========================================================= */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    $('panel-' + activeTab).classList.add('active');
+  });
+});
+
+/* =========================================================
+   FILE INPUT
+   ========================================================= */
+const dropzone = $('dropzone');
+const fileInput = $('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, { type: 'array', raw: false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: '' });
+      loadFileRows(rows, file.name, ws['!ref']);
+    } catch (err) {
+      $('fileInfo').innerHTML = '<div class="alert">❌ Gagal membaca file: ' + err.message + '</div>';
+      $('mappingPanel').style.display = 'none';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function loadFileRows(rows, filename, ref) {
+  if (!rows.length) {
+    $('fileInfo').innerHTML = '<div class="alert">⚠️ File kosong.</div>';
+    $('mappingPanel').style.display = 'none';
+    return;
+  }
+
+  /* >>> PERBAIKAN UTAMA: gunakan !ref agar kolom kosong tetap terhitung <<< */
+  let maxCols = 0;
+  if (ref) {
+    try {
+      const range = XLSX.utils.decode_range(ref);
+      maxCols = range.e.c + 1;   // e.c = index kolom paling kanan (0-based)
+    } catch (e) {}
+  }
+  // Fallback jika !ref tidak tersedia
+  if (!maxCols) maxCols = Math.max(...rows.map(r => (r ? r.length : 0)));
+  if (!maxCols) maxCols = 1;
+
+  // Deteksi baris header
+  const firstRow = rows[0] || [];
+  const nonEmptyFirst = [];
+  for (let i = 0; i < maxCols; i++) {
+    if (String(firstRow[i] ?? '').trim() !== '') nonEmptyFirst.push(firstRow[i]);
+  }
+  const numericCount = nonEmptyFirst.filter(c => isNumeric(c)).length;
+  const hasHeader = nonEmptyFirst.length > 0 && numericCount < nonEmptyFirst.length;
+
+  let headers = [], dataRows = [];
+  if (hasHeader) {
+    headers = [];
+    for (let i = 0; i < maxCols; i++) {
+      const h = String(firstRow[i] ?? '').trim();
+      // Kolom tanpa judul → beri nama "Kolom N" agar tetap terbaca
+      headers.push(h || `Kolom ${i + 1}`);
+    }
+    dataRows = rows.slice(1);
+  } else {
+    for (let i = 0; i < maxCols; i++) headers.push(`Kolom ${i + 1}`);
+    dataRows = rows;
+  }
+
+  // Normalisasi: baris selalu panjang maxCols, buang baris yang semua kosong
+  dataRows = dataRows
+    .filter(r => r && r.some(c => String(c ?? '').trim() !== ''))
+    .map(r => {
+      const nr = [];
+      for (let i = 0; i < maxCols; i++) nr.push(r[i] !== undefined ? r[i] : '');
+      return nr;
+    });
+
+  if (!dataRows.length) {
+    $('fileInfo').innerHTML = '<div class="alert">⚠️ Tidak ada baris data setelah header.</div>';
+    $('mappingPanel').style.display = 'none';
+    return;
+  }
+
+  fileData = { headers, rows: dataRows, nameIdx: -1, valueIdx: -1, fileName: filename };
+  autoDetectCols();
+  renderMappingPanel();
+
+  $('fileInfo').innerHTML =
+    `<div class="alert ok">✅ <b>${dataRows.length}</b> baris × <b>${headers.length}</b> kolom berhasil dimuat dari <b>${escapeHtml(filename)}</b>.
+     <br><small>Kolom tanpa judul di file asli otomatis diberi nama "Kolom N" agar tetap bisa dipilih &amp; ditampilkan.</small></div>`;
+  dropzone.querySelector('p').innerHTML = `<strong>${escapeHtml(filename)}</strong> — ${dataRows.length} baris, ${headers.length} kolom`;
+}
+
+function autoDetectCols() {
+  const { headers, rows } = fileData;
+  let nameIdx = -1, valueIdx = -1;
+
+  for (let i = 0; i < headers.length; i++) {
+    const h = String(headers[i]).toLowerCase();
+    if (nameIdx < 0 && (h.includes('nama') || h.includes('name') || h.includes('siswa'))) nameIdx = i;
+  }
+  for (let i = 0; i < headers.length; i++) {
+    const h = String(headers[i]).toLowerCase();
+    if (h.includes('konversi') || h.includes('hasil') || h.includes('target')) continue;
+    if (valueIdx < 0 && (h.includes('nilai') || h.includes('skor') || h.includes('score') || h.includes('value') || h.includes('angka'))) valueIdx = i;
+  }
+
+  if (nameIdx < 0) {
+    let best = -1, bestScore = -1;
+    for (let i = 0; i < headers.length; i++) {
+      const samples = rows.slice(0, 15).map(r => r[i]).filter(v => String(v).trim() !== '');
+      if (!samples.length) continue;
+      const textCount = samples.filter(v => !isNumeric(v) && /[a-zA-Z]/.test(String(v))).length;
+      const score = textCount / samples.length;
+      if (score > bestScore) { bestScore = score; best = i; }
+    }
+    if (bestScore > 0.3) nameIdx = best;
+  }
+  if (valueIdx < 0) {
+    let best = -1, bestScore = -1;
+    for (let i = 0; i < headers.length; i++) {
+      if (i === nameIdx) continue;
+      const samples = rows.slice(0, 15).map(r => r[i]).filter(v => String(v).trim() !== '');
+      if (!samples.length) continue;
+      const numCount = samples.filter(v => isNumeric(v)).length;
+      const score = numCount / samples.length;
+      if (score > bestScore) { bestScore = score; best = i; }
+    }
+    if (bestScore > 0.5) valueIdx = best;
+  }
+
+  fileData.nameIdx = nameIdx;
+  fileData.valueIdx = valueIdx;
+}
+
+function renderMappingPanel() {
+  const { headers, nameIdx, valueIdx } = fileData;
+  const nameSel = $('nameColSel');
+  const valSel = $('valueColSel');
+
+  nameSel.innerHTML = headers.map((h, i) =>
+    `<option value="${i}" ${i === nameIdx ? 'selected' : ''}>Kolom ${i + 1}: ${escapeHtml(h)}</option>`).join('');
+  valSel.innerHTML = headers.map((h, i) =>
+    `<option value="${i}" ${i === valueIdx ? 'selected' : ''}>Kolom ${i + 1}: ${escapeHtml(h)}</option>`).join('');
+
+  renderPreview();
+  $('mappingPanel').style.display = 'block';
+}
+
+function renderPreview() {
+  const { headers, rows } = fileData;
+  const N = Math.min(5, rows.length);
+  let html = '<thead><tr><th style="width:50px">#</th>';
+  headers.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < N; i++) {
+    html += `<tr><td>${i + 1}</td>`;
+    headers.forEach((_, j) => html += `<td>${escapeHtml(rows[i][j])}</td>`);
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  $('previewTable').innerHTML = html;
+}
+
+$('nameColSel').addEventListener('change', e => { fileData.nameIdx = parseInt(e.target.value); });
+$('valueColSel').addEventListener('change', e => { fileData.valueIdx = parseInt(e.target.value); });
+
+/* =========================================================
+   MANUAL / BULK PASTE
+   ========================================================= */
+const manualBody = $('manualBody');
+
+function renderManual() {
+  if (!manualData.length) {
+    manualBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px">Belum ada data. Paste di atas lalu klik "Proses Tempelan".</td></tr>`;
+    return;
+  }
+  manualBody.innerHTML = manualData.map((r, i) => `
+    <tr>
+      <td style="text-align:center;color:#94a3b8">${i + 1}</td>
+      <td><input data-i="${i}" data-f="nama" value="${escAttr(r.nama)}" placeholder="Nama siswa..."></td>
+      <td><input data-i="${i}" data-f="nilai" value="${escAttr(r.nilai)}" placeholder="0" style="text-align:center"></td>
+      <td><button class="del-btn" data-del="${i}" title="Hapus">✕</button></td>
+    </tr>`).join('');
+}
+
+manualBody.addEventListener('input', e => {
+  const inp = e.target;
+  if (inp.tagName !== 'INPUT') return;
+  const i = +inp.dataset.i, f = inp.dataset.f;
+  manualData[i][f] = inp.value;
+});
+
+manualBody.addEventListener('click', e => {
+  const btn = e.target.closest('[data-del]');
+  if (!btn) return;
+  manualData.splice(+btn.dataset.del, 1);
+  renderManual();
+});
+
+function parseBulkText(text) {
+  const lines = text.split(/\r?\n/).map(l => l.replace(/\s+$/, '')).filter(l => l.trim() !== '');
+  const parsed = [];
+  for (const line of lines) {
+    let cells = splitLine(line).map(c => c.trim()).filter(c => c !== '');
+    if (cells.length < 2) {
+      const m = line.trim().match(/^(.*\S)\s+(\S+)$/);
+      if (m) cells = [m[1].trim(), m[2].trim()];
+      else continue;
+    }
+    if (cells.length < 2) continue;
+
+    const numPositions = [];
+    cells.forEach((c, i) => { if (isNumeric(c)) numPositions.push(i); });
+    if (!numPositions.length) continue;
+    const scoreIdx = numPositions[numPositions.length - 1];
+    const score = toNum(cells[scoreIdx]);
+
+    let nameIdx = -1;
+    for (let i = 0; i < cells.length; i++) {
+      if (i === scoreIdx) continue;
+      if (!isNumeric(cells[i]) && /[a-zA-Z]/.test(cells[i])) { nameIdx = i; break; }
+    }
+    if (nameIdx < 0) {
+      let longest = -1, len = 0;
+      for (let i = 0; i < cells.length; i++) {
+        if (i === scoreIdx) continue;
+        if (cells[i].length > len) { len = cells[i].length; longest = i; }
+      }
+      nameIdx = longest;
+    }
+    if (nameIdx < 0) continue;
+    parsed.push({ nama: cells[nameIdx], nilai: score });
+  }
+  return parsed;
+}
+
+function splitLine(line) {
+  if (line.includes('\t')) return line.split('\t');
+  if (line.includes('|')) return line.split('|');
+  if (line.includes(';')) return line.split(';');
+  if (line.includes(',')) return line.split(',');
+  if (/\s{2,}/.test(line)) return line.split(/\s{2,}/);
+  return [line];
+}
+
+$('parseBulk').addEventListener('click', () => {
+  const text = $('bulkPaste').value;
+  if (!text.trim()) { alert('⚠️ Tempelan masih kosong.'); return; }
+  const parsed = parseBulkText(text);
+  if (!parsed.length) { alert('⚠️ Tidak ada baris yang bisa diproses. Pastikan setiap baris berisi Nama dan Nilai.'); return; }
+  manualData = manualData.length ? manualData.concat(parsed) : parsed;
+  renderManual();
+  $('bulkPaste').value = '';
+  showToast(`✅ ${parsed.length} baris berhasil diproses`);
+});
+
+$('loadSample').addEventListener('click', () => {
+  const sample = [
+    ['Ahmad Fauzi', 45], ['Bella Safira', 58], ['Citra Dewi', 62],
+    ['Dimas Pratama', 70], ['Eka Lestari', 73], ['Fajar Nugroho', 76],
+    ['Gita Purnama', 79], ['Hendra Wijaya', 82], ['Indah Permata', 85],
+    ['Joko Susilo', 88], ['Kartika Sari', 90], ['Lukman Hakim', 95]
+  ];
+  manualData = sample.map(s => ({ nama: s[0], nilai: s[1] }));
+  renderManual();
+});
+
+$('addRow').addEventListener('click', () => {
+  manualData.push({ nama: '', nilai: '' });
+  renderManual();
+  const inp = manualBody.querySelector('tr:last-child input[data-f="nama"]');
+  if (inp) inp.focus();
+});
+
+$('clearManual').addEventListener('click', () => {
+  if (manualData.length && !confirm('Hapus semua data manual?')) return;
+  manualData = [];
+  $('bulkPaste').value = '';
+  renderManual();
+});
+
+manualBody.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    const i = +e.target.dataset.i;
+    const next = manualBody.querySelector(`input[data-i="${i + 1}"][data-f="nama"]`);
+    if (next) next.focus();
+  }
+});
+
+renderManual();
+
+/* =========================================================
+   METODE KONVERSI
+   ========================================================= */
+function convertLinear(values, tMin, tMax) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (max === min) return values.map(() => (tMin + tMax) / 2);
+  const scale = (tMax - tMin) / (max - min);
+  return values.map(v => tMin + (v - min) * scale);
+}
+
+function convertZScore(values, tMin, tMax) {
+  const n = values.length;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+  const sd = Math.sqrt(variance);
+  const tMean = (tMin + tMax) / 2;
+  const tSd = (tMax - tMin) / 6;
+  if (sd === 0) return values.map(() => tMean);
+  return values.map(v => {
+    const z = (v - mean) / sd;
+    const out = tMean + z * tSd;
+    return Math.max(tMin, Math.min(tMax, out));
+  });
+}
+
+/* =========================================================
+   PROSES KONVERSI
+   ========================================================= */
+$('convertBtn').addEventListener('click', runConversion);
+
+function runConversion() {
+  let list = [];
+
+  if (activeTab === 'file') {
+    if (!fileData.rows.length) { alert('⚠️ Belum ada file yang diupload.'); return; }
+    if (fileData.nameIdx < 0 || fileData.valueIdx < 0) { alert('⚠️ Pilih kolom Nama dan Nilai terlebih dahulu.'); return; }
+
+    const { headers, rows, nameIdx, valueIdx } = fileData;
+    rows.forEach(row => {
+      const nilai = toNum(row[valueIdx]);
+      if (isNaN(nilai)) return;
+      const display = {};
+      const usedKeys = {};
+      headers.forEach((h, j) => {
+        let key = h;
+        // Hindari bentrok dengan nama kolom output
+        if (key === 'Nilai Konversi' || key === 'Selisih' || key === 'Nilai Asli') {
+          key = key + ' (Asli)';
+        }
+        // Kalau masih bentrok, tambahkan index
+        if (usedKeys[key] !== undefined) key = key + ' #' + (j + 1);
+        usedKeys[key] = true;
+        display[key] = row[j];
+      });
+      list.push({ display, nama: String(row[nameIdx] ?? ''), nilai });
+    });
+  } else {
+    if (!manualData.length) { alert('⚠️ Data manual masih kosong.'); return; }
+    manualData.forEach((r, i) => {
+      const nilai = toNum(r.nilai);
+      const nama = String(r.nama || '').trim();
+      if (isNaN(nilai)) return;
+      list.push({
+        display: { 'No': i + 1, 'Nama': nama || '(tanpa nama)' },
+        nama: nama || '(tanpa nama)',
+        nilai
+      });
+    });
+  }
+
+  if (!list.length) { alert('⚠️ Tidak ada nilai numerik yang valid.'); return; }
+
+  const tMin = parseFloat($('targetMin').value);
+  const tMax = parseFloat($('targetMax').value);
+  const method = $('method').value;
+  const dec = parseInt($('roundMode').value);
+
+  if (isNaN(tMin) || isNaN(tMax)) { alert('⚠️ Nilai minimal & maksimal harus angka.'); return; }
+  if (tMax <= tMin) { alert('⚠️ Nilai maksimal harus lebih besar dari minimal.'); return; }
+
+  const originals = list.map(s => s.nilai);
+  let converted = method === 'linear'
+    ? convertLinear(originals, tMin, tMax)
+    : convertZScore(originals, tMin, tMax);
+
+  const factor = Math.pow(10, dec);
+  converted = converted.map(v => Math.round(v * factor) / factor);
+
+  results = list.map((s, i) => {
+    const display = { ...s.display };
+    display['Nilai Asli'] = s.nilai;
+    display['Nilai Konversi'] = converted[i];
+    display['Selisih'] = Math.round((converted[i] - s.nilai) * factor) / factor;
+    return {
+      display,
+      nama: s.nama,
+      nilaiAsli: s.nilai,
+      nilaiKonversi: converted[i],
+      delta: display['Selisih']
+    };
+  });
+
+  displayCols = Object.keys(results[0].display);
+  lastMeta = { tMin, tMax, method, dec, count: results.length };
+  renderResults();
+}
+
+/* =========================================================
+   RENDER HASIL
+   ========================================================= */
+function renderResults() {
+  const dec = lastMeta.dec;
+
+  // Header dengan tombol copy per kolom
+  $('resultHead').innerHTML = '<tr>' + displayCols.map((c, i) => {
+    const isNum = ['Nilai Konversi', 'Selisih', 'Nilai Asli'].includes(c);
+    return `<th style="${isNum ? 'text-align:center;' : ''}" data-col="${escAttr(c)}">
+      ${escapeHtml(c)}
+      <button class="copy-col-btn" data-copy-col="${escAttr(c)}" title="Copy kolom ini">📋</button>
+    </th>`;
+  }).join('') + '</tr>';
+
+  $('resultBody').innerHTML = results.map(r => {
+    const tds = displayCols.map(col => {
+      const v = r.display[col];
+      if (col === 'Nilai Konversi') return `<td class="num-conv" style="text-align:center">${fmtNum(v, dec)}</td>`;
+      if (col === 'Selisih') {
+        const cls = v > 0.0001 ? 'up' : (v < -0.0001 ? 'down' : 'same');
+        const sign = v > 0.0001 ? '+' : '';
+        return `<td style="text-align:center"><span class="badge ${cls}">${sign}${fmtNum(v, dec)}</span></td>`;
+      }
+      if (col === 'Nilai Asli') return `<td class="num-orig" style="text-align:center">${fmtNum(v, dec)}</td>`;
+      if (typeof v === 'number') return `<td style="text-align:center">${v}</td>`;
+      if (isNumeric(v)) return `<td style="text-align:center">${escapeHtml(v)}</td>`;
+      return `<td>${escapeHtml(v)}</td>`;
+    }).join('');
+    return `<tr>${tds}</tr>`;
+  }).join('');
+
+  // Statistik
+  const origVals = results.map(r => r.nilaiAsli);
+  const convVals = results.map(r => r.nilaiKonversi);
+  const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+  const f = v => fmtNum(v, dec);
+
+  $('statsBox').innerHTML = `
+    <div class="stat"><div class="lbl">Jumlah Siswa</div><div class="val">${results.length}</div></div>
+    <div class="stat"><div class="lbl">Rata-rata Asli</div><div class="val">${f(avg(origVals))}</div></div>
+    <div class="stat"><div class="lbl">Rata-rata Konversi</div><div class="val">${f(avg(convVals))}</div></div>
+    <div class="stat"><div class="lbl">Rentang Asli</div><div class="val">${f(Math.min(...origVals))} <small>–</small> ${f(Math.max(...origVals))}</div></div>
+    <div class="stat"><div class="lbl">Rentang Konversi</div><div class="val">${f(Math.min(...convVals))} <small>–</small> ${f(Math.max(...convVals))}</div></div>
+  `;
+
+  const methodName = lastMeta.method === 'linear' ? 'Linear Proporsional (Min–Max)' : 'Z-Score → T-Score';
+  let info = `✅ <b>${results.length} siswa</b> berhasil dikonversi dengan metode <b>${methodName}</b>.
+              Nilai dipetakan ke rentang <b>${lastMeta.tMin} – ${lastMeta.tMax}</b>
+              dengan pembulatan <b>${lastMeta.dec} desimal</b>.`;
+  if (lastMeta.method === 'linear') {
+    info += `<br><small>Selisih antar siswa tetap proporsional — siswa bernilai rendah maupun tinggi sama-sama naik secara berkeadilan, urutan ranking tidak berubah.</small>`;
+  } else {
+    info += `<br><small>Nilai dinormalisasi terhadap rata-rata &amp; simpangan baku kelas.</small>`;
+  }
+  $('resultAlert').innerHTML = `<div class="alert ok">${info}</div>`;
+
+  $('resultCard').style.display = 'block';
+  $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* =========================================================
+   COPY PER KOLOM / SEMUA (TSV)
+   ========================================================= */
+function getCellText(col, v) {
+  if (col === 'Nilai Konversi' || col === 'Selisih' || col === 'Nilai Asli') {
+    return fmtNum(v, lastMeta.dec);
+  }
+  return String(v ?? '');
+}
+
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('[data-copy-col]');
+  if (!btn) return;
+  const col = btn.dataset.copyCol;
+  const lines = [col];
+  results.forEach(r => lines.push(getCellText(col, r.display[col])));
+  const text = lines.join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`📋 Kolom "${col}" dicopy (${results.length} data)`);
+  } catch (err) {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    showToast(`📋 Kolom "${col}" dicopy`);
+  }
+});
+
+$('copyAllBtn').addEventListener('click', async () => {
+  if (!results.length) return;
+  // TSV (Tab-Separated) → paste ke Excel langsung terpisah per kolom
+  const header = displayCols.join('\t');
+  const rows = results.map(r =>
+    displayCols.map(c => getCellText(c, r.display[c])).join('\t')
+  );
+  const text = [header, ...rows].join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`📋 Tabel lengkap dicopy (${results.length} baris × ${displayCols.length} kolom)`);
+  } catch (err) {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    showToast('📋 Tabel lengkap dicopy');
+  }
+});
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+function buildAOA() {
+  const dec = lastMeta.dec;
+  const aoa = [displayCols.slice()];
+  results.forEach(r => {
+    const row = displayCols.map(col => {
+      const v = r.display[col];
+      if (col === 'Nilai Konversi' || col === 'Selisih' || col === 'Nilai Asli') return Number(fmtNum(v, dec));
+      if (isNumeric(v)) return Number(v);
+      return v;
+    });
+    aoa.push(row);
+  });
+  return aoa;
+}
+
+$('exportXlsx').addEventListener('click', () => {
+  if (!results.length) return;
+  const aoa = buildAOA();
+  const methodName = lastMeta.method === 'linear' ? 'Linear Proporsional (Min-Max)' : 'Z-Score to T-Score';
+  const meta = [
+    ['LAPORAN KONVERSI NILAI SISWA'],
+    ['Metode', methodName],
+    ['Rentang Target', lastMeta.tMin + ' - ' + lastMeta.tMax],
+    ['Pembulatan', lastMeta.dec + ' desimal'],
+    ['Jumlah Siswa', results.length],
+    [''],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([...meta, ...aoa]);
+  ws['!cols'] = displayCols.map((c, i) => {
+    if (i === 0) return { wch: 6 };
+    return { wch: Math.max(14, Math.min(30, c.length + 4)) };
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Hasil Konversi');
+  XLSX.writeFile(wb, 'Hasil_Konversi_Nilai.xlsx');
+});
+
+$('exportCsv').addEventListener('click', () => {
+  if (!results.length) return;
+  const aoa = buildAOA();
+  const csv = aoa.map(row =>
+    row.map(cell => {
+      const s = String(cell ?? '');
+      return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(';')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Hasil_Konversi_Nilai.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
